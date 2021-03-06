@@ -408,21 +408,14 @@ void tst_reap_children(void)
 
 pid_t safe_fork(const char *filename, unsigned int lineno)
 {
-	pid_t pid;
-
 	if (!tst_test->forks_child)
 		tst_brk(TBROK, "test.forks_child must be set!");
 
 	tst_flush();
 
-	pid = fork();
-	if (pid < 0)
-		tst_brk_(filename, lineno, TBROK | TERRNO, "fork() failed");
+        tst_brk(TBROK, "safe_fork(): for not supported!");
 
-	if (!pid)
-		atexit(tst_free_all);
-
-	return pid;
+	return -1;
 }
 
 pid_t safe_clone(const char *file, const int lineno,
@@ -1294,6 +1287,7 @@ void tst_set_timeout(int timeout)
 		heartbeat();
 }
 
+#if 0
 static int _myst_spawn(
     pid_t* pid,
     const posix_spawn_file_actions_t* file_actions,
@@ -1316,15 +1310,7 @@ static int _myst_spawn(
 
     return ret;
 }
-
-static int _child_process(void)
-{
-    SAFE_SIGNAL(SIGALRM, SIG_DFL);
-    SAFE_SIGNAL(SIGUSR1, SIG_DFL);
-    SAFE_SIGNAL(SIGINT, SIG_DFL);
-    SAFE_SETPGID(0, 0);
-    testrun();
-}
+#endif
 
 static int fork_testrun(void)
 {
@@ -1335,34 +1321,17 @@ static int fork_testrun(void)
 	else
 		tst_set_timeout(300);
 
-	SAFE_SIGNAL(SIGINT, sigint_handler);
+        test_pid = 0;
+        tst_res(TINFO, "No fork support");
 
-	if (_myst_spawn(&test_pid, NULL, NULL, _child_process, NULL) != 0)
-            tst_brk(TBROK | TERRNO, "_myst_spawn()");
+        SAFE_SIGNAL(SIGALRM, SIG_DFL);
+        SAFE_SIGNAL(SIGUSR1, SIG_DFL);
+        SAFE_SIGNAL(SIGINT, SIG_DFL);
+        SAFE_SETPGID(0, 0);
+        testrun();
 
-	if (test_pid < 0)
-		tst_brk(TBROK | TERRNO, "_myst_spawn()");
-
-	SAFE_WAITPID(test_pid, &status, 0);
-	alarm(0);
-	SAFE_SIGNAL(SIGINT, SIG_DFL);
-
-	if (tst_test->taint_check && tst_taint_check()) {
-		tst_res(TFAIL, "Kernel is now tainted.");
-		return TFAIL;
-	}
-
-	if (WIFEXITED(status) && WEXITSTATUS(status))
-		return WEXITSTATUS(status);
-
-	if (WIFSIGNALED(status) && WTERMSIG(status) == SIGKILL) {
-		tst_res(TINFO, "If you are running on slow machine, "
-			       "try exporting LTP_TIMEOUT_MUL > 1");
-		tst_brk(TBROK, "Test killed! (timeout?)");
-	}
-
-	if (WIFSIGNALED(status))
-		tst_brk(TBROK, "Test killed by %s!", tst_strsig(WTERMSIG(status)));
+        //alarm(0);
+        //SAFE_SIGNAL(SIGINT, SIG_DFL);
 
 	return 0;
 }
