@@ -13,6 +13,7 @@
 #include <sys/mount.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <spawn.h>
 
 #define TST_NO_DEFAULT_MAIN
 #include "tst_test.h"
@@ -1188,7 +1189,7 @@ static void testrun(void)
 	}
 
 	do_test_cleanup();
-	exit(0);
+	_exit(0);
 }
 
 static pid_t test_pid;
@@ -1293,6 +1294,38 @@ void tst_set_timeout(int timeout)
 		heartbeat();
 }
 
+static int _myst_spawn(
+    pid_t* pid,
+    const posix_spawn_file_actions_t* file_actions,
+    const posix_spawnattr_t* attrp,
+    int (*start_routine)(void*),
+    void* arg)
+{
+    const long SYS_myst_syscall = 1017;
+
+    long ret = syscall(
+        SYS_myst_syscall,
+        (long)pid,
+        (long)file_actions,
+        (long)attrp,
+        (long)start_routine,
+        (long)arg);
+
+    if (ret < 0)
+        errno = (int)-ret;
+
+    return ret;
+}
+
+static int _child_process(void)
+{
+    SAFE_SIGNAL(SIGALRM, SIG_DFL);
+    SAFE_SIGNAL(SIGUSR1, SIG_DFL);
+    SAFE_SIGNAL(SIGINT, SIG_DFL);
+    SAFE_SETPGID(0, 0);
+    testrun();
+}
+
 static int fork_testrun(void)
 {
 	int status;
@@ -1304,17 +1337,11 @@ static int fork_testrun(void)
 
 	SAFE_SIGNAL(SIGINT, sigint_handler);
 
-	test_pid = fork();
-	if (test_pid < 0)
-		tst_brk(TBROK | TERRNO, "fork()");
+	if (_myst_spawn(&test_pid, NULL, NULL, _child_process, NULL) != 0)
+            tst_brk(TBROK | TERRNO, "_myst_spawn()");
 
-	if (!test_pid) {
-		SAFE_SIGNAL(SIGALRM, SIG_DFL);
-		SAFE_SIGNAL(SIGUSR1, SIG_DFL);
-		SAFE_SIGNAL(SIGINT, SIG_DFL);
-		SAFE_SETPGID(0, 0);
-		testrun();
-	}
+	if (test_pid < 0)
+		tst_brk(TBROK | TERRNO, "_myst_spawn()");
 
 	SAFE_WAITPID(test_pid, &status, 0);
 	alarm(0);
