@@ -155,7 +155,7 @@ static void setup(void)
 	TC[3].dir = bad_addr;
 #endif
 #else
-	TC[3].dir = tst_get_bad_addr();
+	TC[3].dir = tst_get_bad_addr(NULL);
 #endif
 	/*
 	 * create two symbolic directory who point to each other to
