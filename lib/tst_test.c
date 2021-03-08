@@ -348,9 +348,7 @@ void tst_res_(const char *file, const int lineno, int ttype,
 	tst_vres_(file, lineno, ttype, fmt, va);
 	va_end(va);
 
-        fprintf(stderr, "XXXXXXXXX: %d TFAIL=%d\n", ttype, TFAIL);
-
-        if (ttype == TFAIL)
+        if ((ttype & TFAIL))
         {
             fprintf(stderr, "%s(%u): crashing\n", __FILE__, __LINE__);
             abort();
