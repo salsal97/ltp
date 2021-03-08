@@ -350,7 +350,7 @@ void tst_res_(const char *file, const int lineno, int ttype,
 
         if ((ttype & TFAIL))
         {
-            fprintf(stderr, "%s(%u): crashing\n", __FILE__, __LINE__);
+            fprintf(stderr, "%s(%u): hard failure\n", __FILE__, __LINE__);
             abort();
         }
 }
