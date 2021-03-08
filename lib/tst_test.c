@@ -342,12 +342,17 @@ void tst_vbrk_(const char *file, const int lineno, int ttype,
 void tst_res_(const char *file, const int lineno, int ttype,
               const char *fmt, ...)
 {
-printf("************************* %s()\n", __FUNCTION__);
 	va_list va;
 
 	va_start(va, fmt);
 	tst_vres_(file, lineno, ttype, fmt, va);
 	va_end(va);
+
+        if (ttype == TFAIL)
+        {
+            fprintf(stderr, "%s(%u): crashing\n", __FILE__, __LINE__);
+            abort();
+        }
 }
 
 void tst_brk_(const char *file, const int lineno, int ttype,
