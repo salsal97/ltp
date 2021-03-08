@@ -165,6 +165,7 @@ void setup(void)
 
 	SAFE_TOUCH(cleanup, fname, 0700, NULL);
 
+#ifdef HAVE_BAD_ADDR
 #if !defined(UCLINUX)
 	bad_addr = mmap(0, 1, PROT_NONE,
 			MAP_PRIVATE_EXCEPT_UCLINUX | MAP_ANONYMOUS, 0, 0);
@@ -173,6 +174,10 @@ void setup(void)
 	}
 	TC[0].fd2 = bad_addr;
 	TC[1].fd = bad_addr;
+#endif
+#else
+	TC[0].fd2 = tst_get_bad_addr(NULL);
+	TC[0].fd = tst_get_bad_addr(NULL);
 #endif
 }
 

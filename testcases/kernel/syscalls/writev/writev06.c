@@ -175,20 +175,28 @@ void setup(void)
 
 	/* Crate two readable and writeble mappings with non reabable
 	 * mapping around */
+#ifdef HAVE_BAD_ADDR
 	bad_addr[0] = mmap(NULL, page_size * 3, PROT_NONE,
 			   MAP_PRIVATE_EXCEPT_UCLINUX | MAP_ANONYMOUS, 0, 0);
 	if (bad_addr[0] == MAP_FAILED)
 		tst_brkm(TBROK, cleanup, "mmap failed for bad_addr[0]");
+#else
+	bad_addr[0] = tst_get_bad_addr(NULL);
+#endif
 
 	good_addr[0] = mmap(NULL, page_size, PROT_READ | PROT_WRITE,
 			    MAP_PRIVATE_EXCEPT_UCLINUX | MAP_ANONYMOUS, 0, 0);
 	if (good_addr[0] == MAP_FAILED)
 		tst_brkm(TBROK, cleanup, "mmap failed for good_addr[0]");
 
+#ifdef HAVE_BAD_ADDR
 	bad_addr[1] = mmap(NULL, page_size * 3, PROT_NONE,
 			   MAP_PRIVATE_EXCEPT_UCLINUX | MAP_ANONYMOUS, 0, 0);
 	if (bad_addr[1] == MAP_FAILED)
 		tst_brkm(TBROK, cleanup, "mmap failed for bad_addr[1]");
+#else
+	bad_addr[1] = tst_get_bad_addr(NULL);
+#endif
 
 	good_addr[1] = mmap(NULL, page_size, PROT_READ | PROT_WRITE,
 			    MAP_PRIVATE_EXCEPT_UCLINUX | MAP_ANONYMOUS, 0, 0);

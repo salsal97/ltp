@@ -230,7 +230,7 @@ void setup(void)
 	}
 	rd_iovec[6].iov_base = bad_addr;
 #else
-	rd_iovec[6].iov_base = (caddr_t)-1;
+	rd_iovec[6].iov_base = tst_get_bad_addr(NULL);
 #endif
 }
 

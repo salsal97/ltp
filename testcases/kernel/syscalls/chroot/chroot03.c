@@ -145,6 +145,7 @@ static void setup(void)
 	(void)sprintf(fname, "tfile_%d", getpid());
 	fd = SAFE_CREAT(cleanup, fname, 0777);
 
+#ifdef HAVE_BAD_ADDR
 #if !defined(UCLINUX)
 	bad_addr = mmap(0, 1, PROT_NONE,
 			MAP_PRIVATE_EXCEPT_UCLINUX | MAP_ANONYMOUS, 0, 0);
@@ -152,6 +153,9 @@ static void setup(void)
 		tst_brkm(TBROK, cleanup, "mmap failed");
 
 	TC[3].dir = bad_addr;
+#endif
+#else
+	TC[3].dir = tst_get_bad_addr();
 #endif
 	/*
 	 * create two symbolic directory who point to each other to

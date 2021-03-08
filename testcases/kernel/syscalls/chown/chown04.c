@@ -155,12 +155,16 @@ static void setup(void)
 
 	memset(long_path, 'a', PATH_MAX - 1);
 
+#ifdef HAVE_BAD_ADDR
 	bad_addr = mmap(0, 1, PROT_NONE,
 			MAP_PRIVATE_EXCEPT_UCLINUX | MAP_ANONYMOUS, 0, 0);
 	if (bad_addr == MAP_FAILED)
 		tst_brkm(TBROK | TERRNO, cleanup, "mmap failed");
 
 	tc[2].pathname = bad_addr;
+#else
+	tc[2].pathname = tst_get_bad_addr(NULL);
+#endif
 
 	SAFE_SYMLINK(cleanup, "test_eloop1", "test_eloop2");
 	SAFE_SYMLINK(cleanup, "test_eloop2", "test_eloop1");

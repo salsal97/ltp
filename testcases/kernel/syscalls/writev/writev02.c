@@ -184,12 +184,15 @@ void setup(void)
 	strcpy(name, DATA_FILE);
 	sprintf(f_name, "%s.%d", name, getpid());
 
+#ifdef HAVE_BAD_ADDR
 	bad_addr = mmap(0, 1, PROT_NONE,
 			MAP_PRIVATE_EXCEPT_UCLINUX | MAP_ANONYMOUS, 0, 0);
 	if (bad_addr == MAP_FAILED)
 		tst_brkm(TBROK | TERRNO, cleanup, "mmap failed");
 	wr_iovec[0].iov_base = bad_addr;
-
+#else
+	wr_iovec[0].iov_base = tst_get_bad_addr(NULL);
+#endif
 }
 
 void cleanup(void)
@@ -197,8 +200,10 @@ void cleanup(void)
 	close(fd[0]);
 	close(fd[1]);
 
+#ifdef HAVE_BAD_ADDR
 	if (munmap(bad_addr, 1) == -1)
 		tst_resm(TWARN | TERRNO, "unmap failed");
+#endif
 	if (unlink(f_name) == -1)
 		tst_resm(TWARN | TERRNO, "unlink failed");
 
