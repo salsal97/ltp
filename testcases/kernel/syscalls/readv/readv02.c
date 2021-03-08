@@ -222,12 +222,16 @@ void setup(void)
 
 	fd[1] = -1;		/* Invalid file descriptor */
 
+#ifdef HAVE_BAD_ADDR
 	bad_addr = mmap(0, 1, PROT_NONE,
 			MAP_PRIVATE_EXCEPT_UCLINUX | MAP_ANONYMOUS, 0, 0);
 	if (bad_addr == MAP_FAILED) {
 		tst_brkm(TBROK, cleanup, "mmap failed");
 	}
 	rd_iovec[6].iov_base = bad_addr;
+#else
+	rd_iovec[6].iov_base = (caddr_t)-1;
+#endif
 }
 
 /*
