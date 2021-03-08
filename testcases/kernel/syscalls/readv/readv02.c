@@ -229,6 +229,8 @@ void setup(void)
 		tst_brkm(TBROK, cleanup, "mmap failed");
 	}
 	rd_iovec[6].iov_base = bad_addr;
+#else
+	rd_iovec[6].iov_base = (caddr_t)-1;
 #endif
 }
 
