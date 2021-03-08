@@ -342,6 +342,7 @@ void tst_vbrk_(const char *file, const int lineno, int ttype,
 void tst_res_(const char *file, const int lineno, int ttype,
               const char *fmt, ...)
 {
+printf("************************* %s()\n", __FUNCTION__);
 	va_list va;
 
 	va_start(va, fmt);
