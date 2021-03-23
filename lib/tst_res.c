@@ -424,9 +424,9 @@ pid_t tst_fork(void)
 		T_exitval = 0;
 
 	return child;
-#endif
-        return tst_vfork();
 #else
+        return tst_vfork();
+#endif
 }
 
 void tst_record_childstatus(void (*cleanup)(void), pid_t child)
