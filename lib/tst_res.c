@@ -412,6 +412,7 @@ void tst_exit(void)
 
 pid_t tst_fork(void)
 {
+#if 0
 	pid_t child;
 
 	NO_NEWLIB_ASSERT("Unknown", 0);
@@ -423,6 +424,9 @@ pid_t tst_fork(void)
 		T_exitval = 0;
 
 	return child;
+#endif
+        return tst_vfork();
+#else
 }
 
 void tst_record_childstatus(void (*cleanup)(void), pid_t child)
