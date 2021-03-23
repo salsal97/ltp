@@ -47,6 +47,9 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#define _GNU_SOURCE
+#include <syscall.h>
+
 #include "test.h"
 #include "safe_macros.h"
 #include "usctest.h"
@@ -425,7 +428,7 @@ pid_t tst_fork(void)
 
 	return child;
 #else
-        return tst_vfork();
+        return syscall(SYS_clone, SIGCHLD, 0);
 #endif
 }
 
