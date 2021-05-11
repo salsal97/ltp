@@ -414,14 +414,21 @@ void tst_reap_children(void)
 
 pid_t safe_fork(const char *filename, unsigned int lineno)
 {
+	pid_t pid;
+
 	if (!tst_test->forks_child)
 		tst_brk(TBROK, "test.forks_child must be set!");
 
 	tst_flush();
 
-        tst_brk(TBROK, "safe_fork(): for not supported!");
+	pid = fork();
+	if (pid < 0)
+			tst_brk_(filename, lineno, TBROK | TERRNO, "fork() failed");
 
-	return -1;
+	if (!pid)
+			atexit(tst_free_all);
+	
+	return pid;
 }
 
 pid_t safe_clone(const char *file, const int lineno,
@@ -1188,7 +1195,7 @@ static void testrun(void)
 	}
 
 	do_test_cleanup();
-	_exit(0);
+	exit(0);
 }
 
 static pid_t test_pid;
@@ -1293,31 +1300,6 @@ void tst_set_timeout(int timeout)
 		heartbeat();
 }
 
-#if 0
-static int _myst_spawn(
-    pid_t* pid,
-    const posix_spawn_file_actions_t* file_actions,
-    const posix_spawnattr_t* attrp,
-    int (*start_routine)(void*),
-    void* arg)
-{
-    const long SYS_myst_syscall = 1017;
-
-    long ret = syscall(
-        SYS_myst_syscall,
-        (long)pid,
-        (long)file_actions,
-        (long)attrp,
-        (long)start_routine,
-        (long)arg);
-
-    if (ret < 0)
-        errno = (int)-ret;
-
-    return ret;
-}
-#endif
-
 static int fork_testrun(void)
 {
 	int status;
@@ -1327,18 +1309,38 @@ static int fork_testrun(void)
 	else
 		tst_set_timeout(300);
 
-        test_pid = 0;
-        tst_res(TINFO, "No fork support");
+       SAFE_SIGNAL(SIGINT, sigint_handler);
 
-        SAFE_SIGNAL(SIGALRM, SIG_DFL);
-        SAFE_SIGNAL(SIGUSR1, SIG_DFL);
-        SAFE_SIGNAL(SIGINT, SIG_DFL);
-        SAFE_SETPGID(0, 0);
-        testrun();
+       test_pid = fork();
+       if (test_pid < 0)
+               tst_brk(TBROK | TERRNO, "fork()");
 
-        //alarm(0);
-        //SAFE_SIGNAL(SIGINT, SIG_DFL);
+       if (!test_pid) {
+               SAFE_SIGNAL(SIGALRM, SIG_DFL);
+               SAFE_SIGNAL(SIGUSR1, SIG_DFL);
+               SAFE_SIGNAL(SIGINT, SIG_DFL);
+               SAFE_SETPGID(0, 0);
+               testrun();
+       }
+       SAFE_WAITPID(test_pid, &status, 0);
+       alarm(0);
+       SAFE_SIGNAL(SIGINT, SIG_DFL);
 
+       if (tst_test->taint_check && tst_taint_check()) {
+               tst_res(TFAIL, "Kernel is now tainted.");
+               return TFAIL;
+       }
+
+       if (WIFEXITED(status) && WEXITSTATUS(status))
+               return WEXITSTATUS(status);
+
+       if (WIFSIGNALED(status) && WTERMSIG(status) == SIGKILL) {
+               tst_res(TINFO, "If you are running on slow machine, "
+                              "try exporting LTP_TIMEOUT_MUL > 1");
+               tst_brk(TBROK, "Test killed! (timeout?)");
+       }
+       if (WIFSIGNALED(status))
+               tst_brk(TBROK, "Test killed by %s!", tst_strsig(WTERMSIG(status)));
 	return 0;
 }
 
