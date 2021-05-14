@@ -30,7 +30,8 @@ static const char *variant_desc[] = {
 	"__NR_accept4 syscall",
 	"__NR_socketcall SYS_ACCEPT4 syscall"};
 
-static struct sockaddr_in *conn_addr, *accept_addr;
+static struct sockaddr_in conn_addr_buff, accept_addr_buff;
+static struct sockaddr_in *conn_addr = &conn_addr_buff, *accept_addr = &accept_addr_buff;
 static int listening_fd;
 
 static int socketcall_accept4(int fd, struct sockaddr *sockaddr, socklen_t
@@ -159,10 +160,5 @@ static struct tst_test test = {
 	.setup = setup,
 	.cleanup = cleanup,
 	.test_variants = 3,
-	.test = verify_accept4,
-	.bufs = (struct tst_buffers []) {
-		{&conn_addr, .size = sizeof(*conn_addr)},
-		{&accept_addr, .size = sizeof(*accept_addr)},
-		{},
-	}
+	.test = verify_accept4
 };
