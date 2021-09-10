@@ -20,7 +20,6 @@
 #include "config.h"
 #include "tst_test.h"
 
-#ifdef HAVE_NUMA_V2
 #include <numa.h>
 #include <numaif.h>
 #include <errno.h>
@@ -207,7 +206,3 @@ static struct tst_test test = {
 	.setup = setup,
 	.cleanup = cleanup,
 };
-
-#else
-TST_TEST_TCONF(NUMA_ERROR_MSG);
-#endif /* HAVE_NUMA_V2 */
