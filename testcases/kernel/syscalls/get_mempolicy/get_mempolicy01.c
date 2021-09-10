@@ -20,8 +20,6 @@
 #include "config.h"
 #include "tst_test.h"
 
-#include <numa.h>
-#include <numaif.h>
 #include <errno.h>
 #include "tst_numa.h"
 
